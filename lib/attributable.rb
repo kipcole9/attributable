@@ -91,6 +91,9 @@ module Attributable
       :subdomain => {
         :validators => {:format => { :with => SUBDOMAIN_REGEXP }}
       },
+      :varbit => {
+        :normalizers => [:varbit]
+      }
       :float    => {},
       :numeric  => {},
       :phone    => {},
@@ -153,6 +156,8 @@ module Attributable
         :float
       when 'integer', 'smallint', 'bigint'
         :integer
+      when /bit/i
+        :varbit  
       else
         if self.connection.enum_types.include?(type)
           :string

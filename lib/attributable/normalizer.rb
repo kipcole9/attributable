@@ -60,6 +60,15 @@ AttributeNormalizer.configure do |config|
     end.compact if list
     list
   end
+  
+  config.normalizers[:varbit] = lambda do |value, options|
+    return value unless value.present?
+    return value if value.is_a?(String)
+    if [Fixnum, Integer, Numeric, BigDecimal].include?(value.class)
+      return value.to_s(2)
+    end
+    value
+  end
 
   config.normalizers[:timestamp] = lambda do |value, options|
     return value unless value.present?
