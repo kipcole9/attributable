@@ -93,7 +93,7 @@ module Attributable
       },
       :varbit => {
         :normalizers => [:varbit]
-      }
+      },
       :float    => {},
       :numeric  => {},
       :phone    => {},
