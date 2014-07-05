@@ -92,7 +92,7 @@ module Attributable
         :validators => {:format => { :with => SUBDOMAIN_REGEXP }}
       },
       :varbit => {
-        :normalizers => [:varbit]
+        # :normalizers => [:varbit]
       },
       :float    => {},
       :numeric  => {},
