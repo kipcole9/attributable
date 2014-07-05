@@ -92,6 +92,7 @@ module Attributable
         :validators => {:format => { :with => SUBDOMAIN_REGEXP }}
       },
       :float    => {},
+      :numeric  => {},
       :phone    => {},
       :date     => {},
       :boolean  => {},
