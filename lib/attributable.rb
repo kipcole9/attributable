@@ -22,7 +22,8 @@ module Attributable
 
   module ClassMethods
     const_set(:SUBDOMAIN_REGEXP, /(?:[A-Za-z0-9][A-Za-z0-9\-]{0,61}[A-Za-z0-9]|[A-Za-z0-9])/)
-    const_set(:CURRENCY_REGEXP, /^\d+??(?:\.\d{0,2})?$/)
+    const_set(:CURRENCY_REGEXP,  /\A\d+??(?:\.\d{0,2})?\Z/)
+    const_set(:BINSTRING_REGEXP, /\A[10]*\Z/)
     
     const_set(:ATTRIBUTE_TYPES, {
       :string => {
@@ -92,7 +93,8 @@ module Attributable
         :validators => {:format => { :with => SUBDOMAIN_REGEXP }}
       },
       :varbit => {
-        # :normalizers => [:varbit]
+        :normalizers => [:varbit],
+        :validators => {:format => {:with => BINSTRING_REGEXP }}
       },
       :float    => {},
       :numeric  => {},
