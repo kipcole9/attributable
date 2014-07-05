@@ -64,7 +64,7 @@ AttributeNormalizer.configure do |config|
   config.normalizers[:varbit] = lambda do |value, options|
     return value unless value.present?
     return value if value.is_a?(String)
-    if [Fixnum, Integer, Numeric, BigDecimal].include?(value.class)
+    if [Fixnum, Integer, Numeric, BigDecimal, Bignum].include?(value.class)
       return value.to_s(2)
     end
     value
