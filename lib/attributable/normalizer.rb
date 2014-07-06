@@ -64,10 +64,14 @@ AttributeNormalizer.configure do |config|
   config.normalizers[:varbit] = lambda do |value, options|
     return value unless value.present?
     return value if value.is_a?(String)
-    if [Fixnum, Integer, Numeric, BigDecimal, Bignum].include?(value.class)
-      return value.to_s(2)
+    case value.class.to_s
+    when 'Fixnum', 'Integer', 'Numeric', 'BigDecimal', 'Bignum'
+      value.to_s(2)
+    when 'Float'
+      value.to_i.to_s(2)
+    else
+      value
     end
-    value
   end
 
   config.normalizers[:timestamp] = lambda do |value, options|
