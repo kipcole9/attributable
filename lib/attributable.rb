@@ -75,12 +75,10 @@ module Attributable
         :validators => {:article => true}
       },
       :geography => {
-        :normalizers => [ :strip, :blank, :geography ],
-        :serializer => "GeographySerializer"
+        :normalizers => [ :strip, :blank, :geography ]
       },
       :geometry => {
-        :normalizers => [ :strip, :blank, :geometry ],
-        :serializer => "GeometrySerializer"
+        :normalizers => [ :strip, :blank, :geometry ]
       },
       :point => {
         :normalizer => [ :point ]
