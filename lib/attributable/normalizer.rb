@@ -10,7 +10,7 @@ AttributeNormalizer.configure do |config|
       lat = value.first
       lon = value.last
     end
-    lat && lon ? GeographySerializer.factory.point(lon, lat) : value
+    lat && lon ? ActiveRecord::Type::Geography::FACTORY.point(lon, lat) : value
   end
   
   # Allow entry of differing point types:  hash[:lat => 3, :lon => 5], or array[lat, lon]
@@ -23,7 +23,7 @@ AttributeNormalizer.configure do |config|
       lat = value.first
       lon = value.last
     end
-    lat && lon ? GeometrySerializer.factory.point(lon, lat) : nil
+    lat && lon ? ActiveRecord::Type::Geometry::FACTORY.point(lon, lat) : nil
   end
   
   # Allow entry of differing point types:  hash[:lat => 3, :lon => 5], or array[lat, lon]
