@@ -5,7 +5,7 @@ AttributeNormalizer.configure do |config|
     return value unless value.present?
     if value.is_a?(Hash)
       lat = value[:lat] || value[:latitude]
-      lon = value[:lon] || value[:longitude]
+      lon = value[:lon] || value[:lng] || value[:longitude]
     elsif value.is_a?(Array)
       lat = value.first
       lon = value.last
@@ -18,7 +18,7 @@ AttributeNormalizer.configure do |config|
     return value unless value.present?
     if value.is_a?(Hash)
       lat = value[:lat] || value[:latitude]
-      lon = value[:lon] || value[:longitude]
+      lon = value[:lon] || value[:lng] || value[:longitude]
     elsif value.is_a?(Array)
       lat = value.first
       lon = value.last
@@ -31,7 +31,7 @@ AttributeNormalizer.configure do |config|
     return value unless value.present?
     if value.is_a?(Hash)
       lat = value[:lat] || value[:latitude]
-      lon = value[:lon] || value[:longitude]
+      lon = value[:lon] || value[:lng] || value[:longitude]
     elsif value.is_a?(Array)
       lat = value.first
       lon = value.last
