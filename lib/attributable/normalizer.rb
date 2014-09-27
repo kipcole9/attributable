@@ -10,7 +10,7 @@ AttributeNormalizer.configure do |config|
       lat = value.first
       lon = value.last
     end
-    lat && lon ? GeographySerializer.factory.point(lon, lat) : value
+    lat && lon ? ActiveRecord::Type::Geography::FACTORY.point(lon, lat) : value
   end
   
   # Allow entry of differing point types:  hash[:lat => 3, :lon => 5], or array[lat, lon]
@@ -23,7 +23,7 @@ AttributeNormalizer.configure do |config|
       lat = value.first
       lon = value.last
     end
-    lat && lon ? GeometrySerializer.factory.point(lon, lat) : nil
+    lat && lon ? ActiveRecord::Type::Geometry::FACTORY.point(lon, lat) : nil
   end
   
   # Allow entry of differing point types:  hash[:lat => 3, :lon => 5], or array[lat, lon]
@@ -59,6 +59,19 @@ AttributeNormalizer.configure do |config|
       t.try(:gsub,/[[:cntrl:]]/,'').try(:strip)
     end.compact if list
     list
+  end
+  
+  config.normalizers[:varbit] = lambda do |value, options|
+    return value unless value.present?
+    return value if value.is_a?(String)
+    case value.class.to_s
+    when 'Fixnum', 'Integer', 'Numeric', 'BigDecimal', 'Bignum'
+      value.to_s(2)
+    when 'Float'
+      value.to_i.to_s(2)
+    else
+      value
+    end
   end
 
   config.normalizers[:timestamp] = lambda do |value, options|

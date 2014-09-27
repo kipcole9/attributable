@@ -17,6 +17,7 @@ class UriValidator < ActiveModel::EachValidator
     }
     configuration.update(options)
     
+    return true if value.nil?     # Presence is a separate validation, not our responsibility
     begin
       uri = Addressable::URI.parse(value)
       unless uri.scheme && uri.host

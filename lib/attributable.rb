@@ -22,7 +22,8 @@ module Attributable
 
   module ClassMethods
     const_set(:SUBDOMAIN_REGEXP, /(?:[A-Za-z0-9][A-Za-z0-9\-]{0,61}[A-Za-z0-9]|[A-Za-z0-9])/)
-    const_set(:CURRENCY_REGEXP, /^\d+??(?:\.\d{0,2})?$/)
+    const_set(:CURRENCY_REGEXP,  /\A\d+??(?:\.\d{0,2})?\Z/)
+    const_set(:BINSTRING_REGEXP, /\A[10]*\Z/)
     
     const_set(:ATTRIBUTE_TYPES, {
       :string => {
@@ -74,12 +75,10 @@ module Attributable
         :validators => {:article => true}
       },
       :geography => {
-        :normalizers => [ :strip, :blank, :geography ],
-        :serializer => "GeographySerializer"
+        :normalizers => [ :strip, :blank, :geography ]
       },
       :geometry => {
-        :normalizers => [ :strip, :blank, :geometry ],
-        :serializer => "GeometrySerializer"
+        :normalizers => [ :strip, :blank, :geometry ]
       },
       :point => {
         :normalizer => [ :point ]
@@ -91,7 +90,12 @@ module Attributable
       :subdomain => {
         :validators => {:format => { :with => SUBDOMAIN_REGEXP }}
       },
+      :varbit => {
+        :normalizers => [:varbit],
+        :validators => {:format => {:with => BINSTRING_REGEXP }}
+      },
       :float    => {},
+      :numeric  => {},
       :phone    => {},
       :date     => {},
       :boolean  => {},
@@ -152,6 +156,8 @@ module Attributable
         :float
       when 'integer', 'smallint', 'bigint'
         :integer
+      when /bit/i
+        :varbit  
       else
         if self.connection.enum_types.include?(type)
           :string
