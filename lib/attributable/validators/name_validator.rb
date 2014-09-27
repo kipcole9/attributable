@@ -1,5 +1,5 @@
 class NameValidator < ActiveModel::EachValidator
-  NAME_REGEXP = /\A[[:word:]][[:print:]]+\Z/
+  NAME_REGEXP = /\A[[:print:]]+\Z/
   
   def validate_each(object, attribute, value)
     configuration = { :message => I18n.t("activerecord.errors.messages.nameable") }
