@@ -74,15 +74,6 @@ module Attributable
         :normalizers => [ :strip, :blank ],
         :validators => {:article => true}
       },
-      :geography => {
-        :normalizers => [ :strip, :blank, :geography ]
-      },
-      :geometry => {
-        :normalizers => [ :strip, :blank, :geometry ]
-      },
-      :point => {
-        :normalizer => [ :point ]
-      },
       :currency => {
         :normalizers => [ :strip, :blank ],
         :validators => {:format => { :with => CURRENCY_REGEXP }, :numericality => true}
@@ -99,7 +90,9 @@ module Attributable
       :phone    => {},
       :date     => {},
       :boolean  => {},
-      :hstore   => {}
+      :hstore   => {},
+      :geometry => {},
+      :geography => {}
     })
 
     def attribute(*attrs)
