@@ -1,44 +1,5 @@
 AttributeNormalizer.configure do |config|
 
-  # Allow entry of differing point types:  hash[:lat => 3, :lon => 5], or array[lat, lon]
-  config.normalizers[:geography] = lambda do |value, options|
-    return value unless value.present?
-    if value.is_a?(Hash)
-      lat = value[:lat] || value[:latitude]
-      lon = value[:lon] || value[:lng] || value[:longitude]
-    elsif value.is_a?(Array)
-      lat = value.first
-      lon = value.last
-    end
-    lat && lon ? ActiveRecord::Type::Geography::FACTORY.point(lon, lat) : value
-  end
-  
-  # Allow entry of differing point types:  hash[:lat => 3, :lon => 5], or array[lat, lon]
-  config.normalizers[:geometry] = lambda do |value, options|
-    return value unless value.present?
-    if value.is_a?(Hash)
-      lat = value[:lat] || value[:latitude]
-      lon = value[:lon] || value[:lng] || value[:longitude]
-    elsif value.is_a?(Array)
-      lat = value.first
-      lon = value.last
-    end
-    lat && lon ? ActiveRecord::Type::Geometry::FACTORY.point(lon, lat) : nil
-  end
-  
-  # Allow entry of differing point types:  hash[:lat => 3, :lon => 5], or array[lat, lon]
-  config.normalizers[:point] = lambda do |value, options|
-    return value unless value.present?
-    if value.is_a?(Hash)
-      lat = value[:lat] || value[:latitude]
-      lon = value[:lon] || value[:lng] || value[:longitude]
-    elsif value.is_a?(Array)
-      lat = value.first
-      lon = value.last
-    end
-    lat && lon ? "(#{lon.to_f},#{lat.to_f})" : nil
-  end
-  
   # Parse a delimited list into an array of structs
   require 'csv'
   config.normalizers[:tag_list] = lambda do |value, options|
