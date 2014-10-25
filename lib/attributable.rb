@@ -1,4 +1,5 @@
 require "attributable/version"
+require "postgresql/schema"
 require "attributable/active_record"
 require "attribute_normalizer"
 require "attributable/normalizer"
@@ -62,7 +63,7 @@ module Attributable
       :array => {
         :validators => {:array => true}
       },
-      :timestamp => {
+      :datetime => {
         :normalizers => [ :strip, :blank, :timestamp ],
         :validators => {:timestamp => true}
       },
@@ -139,27 +140,9 @@ module Attributable
   private
     # TODO: The Postgres adapter has this (simple_type?), use that instead
     def type_from_database(attr)
-      type = columns_hash[attr.to_s].present? ? columns_hash[attr.to_s].sql_type : :string
-      case type
-      when /character/, 'text'
-        :string
-      when /timestamp/
-        :timestamp
-      when 'double precision'
-        :float
-      when 'integer', 'smallint', 'bigint'
-        :integer
-      when /bit/i
-        :varbit  
-      else
-        if self.connection.enum_types.include?(type)
-          :string
-        else
-          type.to_sym
-        end
-      end
+      (c = columns_hash[attr.to_s]).present? ? c.cast_type.type : :string
     end
-
+    
   end
 
   module InstanceMethods
