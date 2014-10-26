@@ -82,7 +82,7 @@ module Attributable
       :subdomain => {
         :validators => {:format => { :with => SUBDOMAIN_REGEXP }}
       },
-      :varbit => {
+      :bit_varying => {
         :normalizers => [:varbit],
         :validators => {:format => {:with => BINSTRING_REGEXP }}
       },
@@ -93,7 +93,8 @@ module Attributable
       :boolean  => {},
       :hstore   => {},
       :geometry => {},
-      :geography => {}
+      :geography => {},
+      :enum => {}
     })
 
     def attribute(*attrs)
