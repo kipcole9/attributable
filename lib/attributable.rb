@@ -20,6 +20,28 @@ module Attributable
       extend ClassMethods
     end
   end
+  
+  class Property
+    attr_reader :attribute_type, :access_type
+    
+    def initialize(model, name, property_type, access_type, template)
+      @model          = model
+      @name           = name
+      @property_type  = property_type
+      @access_type    = access_type
+      @validators     = template[:validators]
+      @normalizers    = template[:normalizers]
+    end
+    
+    def as_json
+      {"#{@name}":
+        {
+          type:         @property_type,
+          description:  I18n.t("schema.property.#{@name}")
+        }
+      }
+    end
+  end
 
   module ClassMethods
     const_set(:SUBDOMAIN_REGEXP, /(?:[A-Za-z0-9][A-Za-z0-9\-]{0,61}[A-Za-z0-9]|[A-Za-z0-9])/)
@@ -97,24 +119,28 @@ module Attributable
       :enum => {}
     })
 
-    def attribute(*attrs)
+    def property(*attrs)
       return unless connected? && table_exists?
       generate_attribute_methods unless ancestor && ancestor.attribute_methods_generated?
 
-      options = attrs.last.is_a?(Hash) ? attrs.pop : {}
-      requested_type = options.delete(:type)
-      access_type = options.delete(:access) || :writeable
+      options         = attrs.last.is_a?(Hash) ? attrs.pop : {}
+      requested_type  = options.delete(:type)
+      access_type     = options.delete(:access) || :writeable
+      
       attrs.each do |attr| 
         attribute_type = requested_type || type_from_database(attr)
         if template = ATTRIBUTE_TYPES[attribute_type.to_sym]
           define_attribute(attr, attribute_type, access_type, template, options)
-          getable_attributes[attr] = [attribute_type, access_type]
+          properties[attr] = Property.new(name, attr, attribute_type, access_type, template)
         else
           raise ArgumentError, "#{attr.to_s}: unknown attribute type: '#{attribute_type}': #{options.inspect}"
         end
       end
     end
-    alias :attributes :attribute
+
+    def properties
+      @properities ||= ancestor ? ancestor.properties.dup : {}
+    end
 
     def define_attribute(attr, type, access, template, options = {})
       normalize_attribute attr, :with => template[:normalizers] if template[:normalizers]
@@ -122,20 +148,20 @@ module Attributable
       serialize attr, template[:serializer].constantize if template[:serializer]
     end
 
-    def getable_attributes
-      @getable_attributes ||= ancestor ? ancestor.getable_attributes.dup : {}
+    def setable_properties
+      @setable_properties ||= properties.select {|name, attrs| attrs.access_type == :writeable}
     end
 
-    def setable_attributes
-      @setable_attribtues ||= getable_attributes.select {|name, attrs| attrs.last == :writeable}
+    def readonly_properties
+      @readable_properties ||= properties.select {|name, attrs| attrs.access_type == :readonly}     
     end
 
-    def readonly_attributes
-      @readable_attributes ||= getable_attributes.select {|name, attrs| attrs.last == :readonly}     
+    def property_names
+      @property_names ||= properties.stringify_keys.keys
     end
-
-    def attribute_names
-      @attribute_names ||= getable_attributes.stringify_keys.keys
+    
+    def as_json
+      properties.values.map(&:as_json)
     end
 
   private
