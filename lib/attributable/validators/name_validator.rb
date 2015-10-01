@@ -11,7 +11,7 @@ module ActiveModel
       end
   
       def self.format
-        NAME_REGEXP.inspect
+        NAME_REGEXP
       end
     end
   end

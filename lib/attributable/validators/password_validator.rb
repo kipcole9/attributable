@@ -11,7 +11,7 @@ module ActiveModel
       end
   
       def self.format
-        PASSWORD_REGEXP.to_s
+        PASSWORD_REGEXP
       end
     end
   end

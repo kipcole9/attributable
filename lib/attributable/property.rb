@@ -3,7 +3,7 @@ module Attributable
   class Property
     JSON_SCHEMA_FORMAT_TYPES = [:email, :uuid, :uri, :datetime]
     attr_reader :model_name, :name, :property_type, :access_type, :template, :validators, :normalizers
-    attr_reader :schema_type, :schema_format, :subtype
+    attr_reader :schema_type, :schema_format, :subtype, :schema_pattern
     
     def initialize(model_name, name, property_type, access_type, template, subtype = nil, subtype_template = nil)
       @model_name     = model_name
@@ -13,8 +13,9 @@ module Attributable
       @validators     = template[:validators]
       @normalizers    = template[:normalizers]
       @schema_type    = template[:json_schema_type]
-      @schema_format  = remove_leading_and_trailing_slashes(template[:json_schema_format])
-      
+      @schema_format  = template[:json_schema_format]
+      @schema_pattern = remove_leading_and_trailing_slashes(template[:json_schema_pattern])
+            
       # if the type is array then we need to also process the subtype
       if subtype
         @subtype = Property.new(model_name, name, subtype, access_type, subtype_template)
@@ -41,6 +42,7 @@ module Attributable
       json[name][:type]                 = schema_type
       json[name][:description]          = I18n.t("schema.property.#{name}")
       json[name][:format]               = format                if format
+      json[name][:pattern]              = pattern               if pattern && !format
       json[name][:enum]                 = enum_definition       if property_type == :enum
       json[name][:default]              = default_value         if has_default_value?
       json[name][:max_length]           = max_length            if max_length
@@ -56,9 +58,8 @@ module Attributable
     def format
       return schema_format if schema_format
       
-      formats = validators.map do |key, value| 
-        "ActiveModel::Validations::#{key.to_s.capitalize}Validator".constantize.format
-      end.compact
+      # Only regexps for pattern
+      formats = validator_formats.delete_if{|f| f.is_a? Regexp}
       
       # Add custom formats for integers
       formats << "int16" if column.sql_type == "smallint"
@@ -66,12 +67,27 @@ module Attributable
       formats << "int64" if column.sql_type == "bigint"
       formats << "int16" if column.sql_type == "smallint"
       
+      formats.first
+    end
+    
+    def pattern
+      return schema_pattern if schema_pattern
+
+      formats = validator_formats.delete_if{|f| !f.is_a?(Regexp)}
+      
       # Extract format from any customized formatters and add them to the list
       format_validator = validator_for_property(ActiveModel::Validations::FormatValidator)
       formats << format_validator.options[:with] if format_validator
       
       # Take the first format and remove the leading and trailing '/'
       formats.any? ? remove_leading_and_trailing_slashes(formats.first) : nil
+    end
+    
+    def validator_formats
+      @formats ||= validators.map do |key, value| 
+        "ActiveModel::Validations::#{key.to_s.capitalize}Validator".constantize.format
+      end.compact
+      @formats
     end
     
     def required?
@@ -96,8 +112,8 @@ module Attributable
   
     def remove_leading_and_trailing_slashes(format)
       return nil unless format.present?
-      return format unless format.is_a? String
-      format.sub(/^\//,'').sub(/\/$/,'')
+      return format unless format.is_a? Regexp
+      format.inspect.sub(/^\//,'').sub(/\/$/,'')
     end
     
     def default_value

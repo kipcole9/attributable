@@ -100,24 +100,24 @@ module Attributable
         :normalizers => [ :strip, :blank ],
         :validators => {:printable => true},
         :json_schema_type => :string,
-        :json_schema_format => ActiveModel::Validations::PrintableValidator.format
+        :json_schema_pattern => ActiveModel::Validations::PrintableValidator.format
       },
       :article => {
         :normalizers => [ :strip, :blank ],
         :validators => {:article => true},
         :json_schema_type => :string,
-        :json_schema_format => ActiveModel::Validations::PrintableValidator.format
+        :json_schema_pattern => ActiveModel::Validations::PrintableValidator.format
       },
       :currency => {
         :normalizers => [ :strip, :blank ],
         :validators => {:format => { :with => CURRENCY_REGEXP }},
         :json_schema_type => :number,
-        :json_schema_format => CURRENCY_REGEXP
+        :json_schema_pattern => CURRENCY_REGEXP
       },
       :subdomain => {
         :validators => {:format => { :with => SUBDOMAIN_REGEXP }},
         :json_schema_type => :string,
-        :json_schema_format => CURRENCY_REGEXP
+        :json_schema_pattern => CURRENCY_REGEXP
       },
       :bit_varying => {
         :normalizers => [:varbit],

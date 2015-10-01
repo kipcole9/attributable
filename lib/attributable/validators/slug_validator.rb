@@ -11,7 +11,7 @@ module ActiveModel
       end
   
       def self.format
-        SLUG_REGEXP.inspect
+        SLUG_REGEXP
       end
     end
   end

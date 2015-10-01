@@ -11,7 +11,7 @@ module ActiveModel
       end
   
       def self.format
-        PRINTABLE_REGEXP.inspect
+        PRINTABLE_REGEXP
       end
     end
   end

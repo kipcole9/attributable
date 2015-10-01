@@ -15,7 +15,7 @@ module ActiveModel
       end
   
       def self.format
-        UUID_REGEXP.inspect
+        UUID_REGEXP
       end
     end
   end
