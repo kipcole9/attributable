@@ -220,7 +220,7 @@ module Attributable
     end
     
     def subtype(attribute)
-      if columns_hash[attribute.to_s].array
+      if columns_hash[attribute.to_s] && columns_hash[attribute.to_s].array
         subtype = columns_hash[attribute.to_s].cast_type.subtype
         subtype.class.name.split('::').last.downcase.to_sym
       end
