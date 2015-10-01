@@ -37,6 +37,13 @@ AttributeNormalizer.configure do |config|
 
   config.normalizers[:timestamp] = lambda do |value, options|
     return value unless value.present?
-    Chronic.time_class.parse(value.to_s) || Chronic.parse(value) || value
+    return value if value.respond_to(:acts_like_time?) && value.acts_like_time?
+    DateTime.parse(value).in_time_zone
+  end
+  
+  config.normalizers[:date] = lambda do |value, options|
+    return value unless value.present?
+    return value if value.respond_to(:acts_like_date?) && value.acts_like_date?
+    Date.parse(value)
   end  
 end if defined?(AttributeNormalizer)
