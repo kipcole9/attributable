@@ -51,7 +51,7 @@ module Attributable
       json[name][:minimum]              = minimum               if minimum
       json[name][:exclusive_maximum]    = exclusive_maximum     if exclusive_maximum
       json[name][:exclusive_minimum]    = exclusive_minimum     if exclusive_minimum
-      json[name][:items]                = subtype.as_json(options)[name].reject{|k,v| k == :description} if subtype
+      json[name][:items]                = subtype_json          if subtype
       json
     end
     
@@ -124,7 +124,10 @@ module Attributable
       column.has_default?
     end
     
-    # This is the database limit -> need to also check validators limits
+    def subtype_json
+      subtype.as_json(options)[name].reject{|k,v| k == :description}
+    end
+    
     def max_length
       return unless schema_type == :string
       if length_validator = validator_for_property(ActiveModel::Validations::LengthValidator)
@@ -134,6 +137,7 @@ module Attributable
     end
     
     def min_length
+      return unless schema_type == :string
       if length_validator = validator_for_property(ActiveModel::Validations::LengthValidator)
         min = length_validator.options[:minimum] || length_validator.options[:in].try(:first) || length_validator.options[:is] 
       end
