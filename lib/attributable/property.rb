@@ -1,4 +1,3 @@
-# TODO: Not yet implementing enum and object
 module Attributable
   class Property
     JSON_SCHEMA_FORMAT_TYPES = [:email, :uuid, :uri, :datetime]
@@ -52,6 +51,7 @@ module Attributable
       json[name][:exclusive_maximum]    = exclusive_maximum     if exclusive_maximum
       json[name][:exclusive_minimum]    = exclusive_minimum     if exclusive_minimum
       json[name][:items]                = subtype_json          if subtype
+      json[name].merge!(object_json)                            if schema_type == :object
       json
     end
     
@@ -124,7 +124,7 @@ module Attributable
       column.has_default?
     end
     
-    def subtype_json
+    def subtype_json(options = {})
       subtype.as_json(options)[name].reject{|k,v| k == :description}
     end
     
@@ -170,6 +170,10 @@ module Attributable
         return true if numeric_validator.options[:less_than]
       end
       false 
+    end
+    
+    def object_json
+      column.cast_type.class.as_json
     end
 
   end

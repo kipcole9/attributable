@@ -143,8 +143,14 @@ module Attributable
         :json_schema_type => :string
       },
       :hstore     => {:validators => {}},
-      :geometry   => {:validators => {}},
-      :geography  => {:validators => {}}
+      :geometry   => {
+        :json_schema_type => :object,
+        :validators => {}
+      },
+      :geography  => {
+        :json_schema_type => :object,
+        :validators => {}
+      }
     })
 
     def property(*attrs)
