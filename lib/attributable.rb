@@ -16,6 +16,8 @@ require "attributable/validators/uri_validator"
 require "attributable/validators/uuid_validator"
 
 module Attributable
+  JSON_SCHEMA_NAME = "http://json-schema.org/draft-04/schema#"
+  
   def self.included(base)
     base.instance_eval do
       include InstanceMethods
@@ -164,7 +166,7 @@ module Attributable
       attrs.each do |attr| 
         attribute_type = requested_type || type_from_database(attr)
         if template = ATTRIBUTE_TYPES[attribute_type.to_sym]
-          define_attribute(attr, attribute_type, access_type, template, options)
+          define_property(attr, attribute_type, access_type, template, options)
           properties[attr] = Property.new(name, attr, attribute_type, access_type, template, 
             subtype(attr), subtype_template(attr))
         else
@@ -177,7 +179,7 @@ module Attributable
       @properities ||= ancestor ? ancestor.properties.dup : {}
     end
 
-    def define_attribute(attr, type, access, template, options = {})
+    def define_property(attr, type, access, template, options = {})
       normalize_attribute attr, :with => template[:normalizers] if template[:normalizers]
       validates attr, (template[:validators] || {}).merge(options) if template[:validators].present? || options.any?
       serialize attr, template[:serializer].constantize if template[:serializer]
@@ -197,7 +199,7 @@ module Attributable
     
     def as_json(options = {})
       schema = Hash.new
-      schema['$schema']     = "http://json-schema.org/draft-04/schema#"
+      schema['$schema']     = JSON_SCHEMA_NAME
       schema[:title]        = name.capitalize
       schema[:description]  = I18n.t("schema.table.#{table_name}")
       schema[:type]         = 'object'
@@ -216,9 +218,8 @@ module Attributable
       end
     end
      
-    # TODO: The Postgres adapter has this (simple_type?), use that instead
     def type_from_database(attr)
-      (c = columns_hash[attr.to_s]).present? ? c.cast_type.type : :string
+      (c = columns_hash[attr.to_s]).present? ? c.type : :string
     end
     
     def required_properties
@@ -226,10 +227,8 @@ module Attributable
     end
     
     def subtype(attribute)
-      if columns_hash[attribute.to_s] && columns_hash[attribute.to_s].array
-        subtype = columns_hash[attribute.to_s].cast_type.subtype
-        subtype.class.name.split('::').last.downcase.to_sym
-      end
+      column = columns_hash[attribute.to_s]
+      column.type if column && column.array?
     end
     
     def subtype_template(attribute)
