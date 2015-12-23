@@ -11,6 +11,7 @@ require "attributable/validators/phone_validator"
 require "attributable/validators/email_validator"
 require "attributable/validators/password_validator"
 require "attributable/validators/printable_validator"
+require "attributable/validators/tag_list_validator"
 require "attributable/validators/slug_validator"
 require "attributable/validators/timestamp_validator"
 require "attributable/validators/uri_validator"
@@ -76,7 +77,7 @@ module Attributable
       },
       :tag_list => {
         :normalizers => [:tag_list],
-        :validators => {},
+        :validators => {tag_list: true},
         :json_schema_type => :array
       },
       :integer => {
