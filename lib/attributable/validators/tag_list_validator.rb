@@ -1,11 +1,11 @@
-# Based upon http://my.rails-royce.org/2010/07/21/email-validation-in-ruby-on-rails-without-regexp/
-# Haxney comment.
+require 'twitter-text'
+
 module ActiveModel
   module Validations
     class TagListValidator < ActiveModel::EachValidator
       # Alpha first character, alphanumeric for subsequent characters
       # no whitespace or punctuation or unprintable characters
-      TAG_REGEXP = /\A[[:alpha:]]([[:alnum:]]+)?\Z/
+      TAG_REGEXP = ::Twitter::Regex[:valid_hashtag]
       
       def validate_each(object, attribute, value)
         configuration = { message: I18n.t('activerecord.errors.messages.taglist')}
@@ -15,8 +15,11 @@ module ActiveModel
         return if value.nil?
         object.errors.add(attribute, configuration[:message]) and return unless value.respond_to?(:each)
         
+        # We're using twitter's definition of a tag. Since their regexp
+        # scans for a string starting with a '#' and we have these stripped then
+        # we put one back before matching
         value.each do |v|
-          invalid_tags << v unless v.match(TAG_REGEXP)
+          invalid_tags << v unless v.is_a?(String) && "##{v}".match(TAG_REGEXP)
         end
 
         object.errors.add(attribute, invalid_tag_message(invalid_tags, configuration)) if invalid_tags.any?
