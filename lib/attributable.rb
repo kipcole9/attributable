@@ -147,7 +147,8 @@ module Attributable
         :validators => {},
         :json_schema_type => :string
       },
-      :hstore     => {:validators => {}},
+      :hstore     => {:validators => {}
+      },
       :geometry   => {
         :json_schema_type => :object,
         :validators => {}
@@ -168,7 +169,8 @@ module Attributable
       
       attrs.each do |attr| 
         attribute_type = requested_type || type_from_database(attr)
-        if template = ATTRIBUTE_TYPES[attribute_type.to_sym]
+        if template = ATTRIBUTE_TYPES[attribute_type.to_sym].deep_dup
+          template[:validators] = (template[:validators] || {}).merge(options)
           define_property(attr, attribute_type, access_type, template, options)
           properties[attr] = Property.new(name, attr, attribute_type, access_type, template, 
             subtype(attr), subtype_template(attr, attribute_type))
@@ -184,8 +186,8 @@ module Attributable
 
     def define_property(attr, type, access, template, options = {})
       normalize_attribute attr, :with => template[:normalizers] if template[:normalizers]
-      validates attr, (template[:validators] || {}).merge(options) if template[:validators].present? || options.any?
-      serialize attr, template[:serializer].constantize if template[:serializer]
+      validates attr, template[:validators]                     if template[:validators].any?
+      serialize attr, template[:serializer].constantize         if template[:serializer]
     end
 
     def setable_properties
@@ -200,6 +202,7 @@ module Attributable
       @property_names ||= properties.stringify_keys.keys
     end
     
+    # options[:case] can be 'camelcase' or 'camelback'
     def as_json(options = {})
       schema = Hash.new
       schema['$schema']     = JSON_SCHEMA_NAME
@@ -208,7 +211,7 @@ module Attributable
       schema[:type]         = 'object'
       schema[:properties]   = properties_hash
       schema[:required]     = required_properties if required_properties.any?
-      schema
+      options[:case] ? schema.send("to_#{options[:case]}_keys") : schema
     end
 
   private

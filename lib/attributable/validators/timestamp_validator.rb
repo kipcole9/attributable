@@ -16,6 +16,10 @@ module ActiveModel
       def invalid_timestamp(value)
         value.present? && !VALID_TIME_CLASSES.include?(value.class)
       end
+      
+      def self.format
+        nil
+      end
     end
   end
 end

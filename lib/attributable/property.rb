@@ -9,7 +9,7 @@ module Attributable
       @name           = name
       @property_type  = property_type
       @access_type    = access_type
-      @validators     = template[:validators]
+      @validators     = template[:validators].dup
       @normalizers    = template[:normalizers]
       @schema_type    = template[:json_schema_type]
       @schema_format  = template[:json_schema_format]
@@ -19,6 +19,7 @@ module Attributable
       if subtype
         @subtype = Property.new(model_name, name, subtype, access_type, subtype_template)
       end
+
     end
     
     # Output a hash that will convert to valid json-schema.  Properties may have the following elements:
@@ -39,7 +40,7 @@ module Attributable
       json = Hash.new
       json[name]                        = {}
       json[name][:type]                 = schema_type
-      json[name][:description]          = I18n.t("schema.property.#{name}")
+      json[name][:description]          = I18n.t("schema.#{name}")
       json[name][:format]               = format                if format
       json[name][:pattern]              = pattern               if pattern && !format && schema_type != :array
       json[name][:enum]                 = enum_definition       if property_type == :enum
@@ -50,6 +51,7 @@ module Attributable
       json[name][:minimum]              = minimum               if minimum
       json[name][:exclusive_maximum]    = exclusive_maximum     if exclusive_maximum
       json[name][:exclusive_minimum]    = exclusive_minimum     if exclusive_minimum
+      json[name][:readonly]             = true                  if readonly
       json[name][:items]                = subtype_json          if subtype
       json[name].merge!(object_json)                            if schema_type == :object
       json
@@ -85,7 +87,7 @@ module Attributable
     
     def validator_formats
       @formats ||= validators.map do |key, value| 
-        "ActiveModel::Validations::#{key.to_s.classify}Validator".constantize.format
+        "ActiveModel::Validations::#{key.to_s.classify}Validator".constantize.format rescue nil
       end.compact
       @formats
     end
@@ -125,7 +127,11 @@ module Attributable
     end
     
     def subtype_json(options = {})
-      subtype.as_json(options)[name].reject{|k,v| k == :description}
+      subtype.as_json.to_a.first.second.reject{|k,v| k == :description}
+    end
+    
+    def object_json
+      column.cast_type.class.as_json
     end
     
     def max_length
@@ -172,8 +178,8 @@ module Attributable
       false 
     end
     
-    def object_json
-      column.cast_type.class.as_json
+    def readonly
+      access_type == :readonly
     end
 
   end
