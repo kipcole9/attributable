@@ -78,7 +78,8 @@ module Attributable
       :tag_list => {
         :normalizers => [:tag_list],
         :validators => {tag_list: true},
-        :json_schema_type => :array
+        :json_schema_type => :array,
+        :json_schema_pattern => ActiveModel::Validations::TagListValidator.format
       },
       :integer => {
         :normalizers => [ :strip, :blank ],
@@ -170,7 +171,7 @@ module Attributable
         if template = ATTRIBUTE_TYPES[attribute_type.to_sym]
           define_property(attr, attribute_type, access_type, template, options)
           properties[attr] = Property.new(name, attr, attribute_type, access_type, template, 
-            subtype(attr), subtype_template(attr))
+            subtype(attr), subtype_template(attr, attribute_type))
         else
           raise ArgumentError, "#{attr.to_s}: unknown attribute type: '#{attribute_type}': #{options.inspect}"
         end
@@ -212,12 +213,7 @@ module Attributable
 
   private
     def properties_hash
-      @properties_hash ||= properties.values.map(&:as_json).inject({}) do |hash, value| 
-        k = value.keys.first
-        v = value.values.first
-        hash[k] = v
-        hash
-      end
+      @properties_hash ||= properties.values.map(&:as_json)
     end
      
     def type_from_database(attr)
@@ -233,8 +229,13 @@ module Attributable
       column.type if column && column.array?
     end
     
-    def subtype_template(attribute)
-      ATTRIBUTE_TYPES[subtype(attribute).to_sym] if subtype(attribute)
+    def subtype_template(attribute, attribute_type)
+      if subtype(attribute)
+        subtype = ATTRIBUTE_TYPES[subtype(attribute).to_sym].dup
+        subtype[:json_schema_pattern] = ATTRIBUTE_TYPES[attribute_type.to_sym][:json_schema_pattern]
+        subtype[:json_schema_format] = ATTRIBUTE_TYPES[attribute_type.to_sym][:json_schema_format]
+      end
+      subtype
     end
     
   end

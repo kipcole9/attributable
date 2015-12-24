@@ -41,7 +41,7 @@ module Attributable
       json[name][:type]                 = schema_type
       json[name][:description]          = I18n.t("schema.property.#{name}")
       json[name][:format]               = format                if format
-      json[name][:pattern]              = pattern               if pattern && !format
+      json[name][:pattern]              = pattern               if pattern && !format && schema_type != :array
       json[name][:enum]                 = enum_definition       if property_type == :enum
       json[name][:default]              = default_value         if has_default_value?
       json[name][:max_length]           = max_length            if max_length
@@ -85,7 +85,7 @@ module Attributable
     
     def validator_formats
       @formats ||= validators.map do |key, value| 
-        "ActiveModel::Validations::#{key.to_s.capitalize}Validator".constantize.format
+        "ActiveModel::Validations::#{key.to_s.classify}Validator".constantize.format
       end.compact
       @formats
     end
@@ -113,7 +113,7 @@ module Attributable
     def remove_leading_and_trailing_slashes(format)
       return nil unless format.present?
       return format unless format.is_a? Regexp
-      format.inspect.sub(/^\//,'').sub(/\/$/,'')
+      format.to_s
     end
     
     def default_value
