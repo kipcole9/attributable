@@ -44,7 +44,7 @@ module Attributable
       json[name][:format]               = format                if format
       json[name][:pattern]              = pattern               if pattern && !format && schema_type != :array
       json[name][:enum]                 = enum_definition       if property_type == :enum
-      json[name][:default]              = default_value         if has_default_value?
+      json[name][:default]              = default_value         if has_default_value?     
       json[name][:max_length]           = max_length            if max_length
       json[name][:min_length]           = min_length            if min_length
       json[name][:maximum]              = maximum               if maximum
@@ -119,11 +119,14 @@ module Attributable
     end
     
     def default_value
-      column.default
+      column.default || column.default_function
     end
     
+    # Default value may be nil (as Id column) but
+    # thats because there is a default function
+    # so we dont supply a default in the json in that case
     def has_default_value?
-      column.has_default?
+      column.has_default? || column.default_function
     end
     
     def subtype_json(options = {})

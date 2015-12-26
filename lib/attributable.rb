@@ -203,10 +203,11 @@ module Attributable
     end
     
     # options[:case] can be 'camelcase' or 'camelback'
-    def as_json(options = {})
+    def as_json_schema(options = {})
       schema = Hash.new
-      schema['$schema']     = JSON_SCHEMA_NAME
-      schema[:title]        = name.capitalize
+      schema[:'$schema']    = "http://json-schema.org/draft-04/schema#"
+      schema[:id]           = name.downcase
+      schema[:title]        = name.underscore.humanize
       schema[:description]  = I18n.t("schema.table.#{table_name}")
       schema[:type]         = 'object'
       schema[:properties]   = properties_hash
