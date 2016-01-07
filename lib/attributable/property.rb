@@ -36,11 +36,11 @@ module Attributable
     # For arrays also can include
     #   minIems
     #   maxItems
-    def as_json(options = {})
+    def as_json_schema(options = {})
       json = Hash.new
       json[name]                        = {}
       json[name][:type]                 = schema_type
-      json[name][:description]          = I18n.t("schema.#{name}")
+      json[name][:description]          = I18n.t("schema.property.#{name}")
       json[name][:format]               = format                if format
       json[name][:pattern]              = pattern               if pattern && !format && schema_type != :array
       json[name][:enum]                 = enum_definition       if property_type == :enum
@@ -64,11 +64,12 @@ module Attributable
       formats = validator_formats.delete_if{|f| f.is_a? Regexp}
       
       # Add custom formats for integers
-      formats << "int16" if column.sql_type == "smallint"
-      formats << "int32" if column.sql_type == "integer"
-      formats << "int64" if column.sql_type == "bigint"
-      formats << "int16" if column.sql_type == "smallint"
-      
+      if column.present?
+        formats << "int16" if column.sql_type == "smallint"
+        formats << "int32" if column.sql_type == "integer"
+        formats << "int64" if column.sql_type == "bigint"
+        formats << "int16" if column.sql_type == "smallint"
+      end
       formats.first
     end
     
@@ -126,15 +127,16 @@ module Attributable
     # thats because there is a default function
     # so we dont supply a default in the json in that case
     def has_default_value?
+      return nil unless column
       column.has_default? || column.default_function
     end
     
     def subtype_json(options = {})
-      subtype.as_json.to_a.first.second.reject{|k,v| k == :description}
+      subtype.as_json_schema.values.first.reject{|k,v| k == :description}
     end
     
     def object_json
-      column.cast_type.class.as_json
+      ActiveRecord::Base.connection.type_map.lookup(column.type.to_s).class.as_json_schema
     end
     
     def max_length
@@ -142,7 +144,7 @@ module Attributable
       if length_validator = validator_for_property(ActiveModel::Validations::LengthValidator)
         max = length_validator.options[:maximum] || length_validator.options[:in].try(:last) || length_validator.options[:is] 
       end
-      max || column.limit
+      max || column.try(:limit)
     end
     
     def min_length

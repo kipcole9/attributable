@@ -1,7 +1,7 @@
 module ActiveModel
   module Validations
     class PrintableValidator < ActiveModel::EachValidator
-      PRINTABLE_REGEXP = /\A[[:space:][:print:]]+\Z/
+      PRINTABLE_REGEXP = /\A[[:print:]][[:space:][:print:]]*\Z/
   
       def validate_each(object, attribute, value)
         configuration = { message: I18n.t('activerecord.errors.messages.printable')}

@@ -5,20 +5,10 @@ require "attributable/active_record"
 require "attributable/property"
 require "attribute_normalizer"
 require "attributable/normalizer"
-require "attributable/validators/email_validator"
-require "attributable/validators/name_validator"
-require "attributable/validators/phone_validator"
-require "attributable/validators/email_validator"
-require "attributable/validators/password_validator"
-require "attributable/validators/printable_validator"
-require "attributable/validators/tag_list_validator"
-require "attributable/validators/slug_validator"
-require "attributable/validators/timestamp_validator"
-require "attributable/validators/uri_validator"
-require "attributable/validators/uuid_validator"
+Dir["#{File.dirname(__FILE__)}/attributable/validators/*.rb"].each {|f| require f}
+require "attributable/json_schema"
 
 module Attributable
-  JSON_SCHEMA_NAME = "http://json-schema.org/draft-04/schema#"
   
   def self.included(base)
     base.instance_eval do
@@ -45,12 +35,14 @@ module Attributable
       :name => {
         :normalizers => [ :strip, :blank, :squish ],
         :validators => {:name => true},
-        :json_schema_type => :string
+        :json_schema_type => :string,
+        :json_schema_pattern => ActiveModel::Validations::NameValidator.format
       },
       :slug => {
         :normalizers => [ :strip, :blank, :squish ],
         :validators => {:slug => true},
-        :json_schema_type => :string
+        :json_schema_type => :string,
+        :json_schema_pattern => ActiveModel::Validations::SlugValidator.format
       },
       :email => {
         :normalizers => [ :strip, :blank ],
@@ -61,7 +53,8 @@ module Attributable
       :password => {
         :normalizers => [ :strip, :blank ],
         :validators => {:presence => true, :password => true},
-        :json_schema_type => :string
+        :json_schema_type => :string,
+        :json_schema_pattern => ActiveModel::Validations::PasswordValidator.format
       },
       :url => {
         :normalizers => [ :strip, :blank ],
@@ -126,7 +119,8 @@ module Attributable
       },
       :bit_varying => {
         :normalizers => [:varbit],
-        :validators => {:format => {:with => BINSTRING_REGEXP }}
+        :validators => {:format => {:with => BINSTRING_REGEXP }},
+        :json_schema_type => :string
       },
       :float      => {
         :validators => {:numericality => {:allow_blank => true}},
@@ -201,33 +195,12 @@ module Attributable
     def property_names
       @property_names ||= properties.stringify_keys.keys
     end
-    
-    # options[:case] can be 'camelcase' or 'camelback'
-    def as_json_schema(options = {})
-      schema = Hash.new
-      schema[:'$schema']    = "http://json-schema.org/draft-04/schema#"
-      schema[:id]           = name.downcase
-      schema[:title]        = name.underscore.humanize
-      schema[:description]  = I18n.t("schema.table.#{table_name}")
-      schema[:type]         = 'object'
-      schema[:properties]   = properties_hash
-      schema[:required]     = required_properties if required_properties.any?
-      options[:case] ? schema.send("to_#{options[:case]}_keys") : schema
-    end
 
   private
-    def properties_hash
-      @properties_hash ||= properties.values.map(&:as_json)
-    end
-     
     def type_from_database(attr)
       (c = columns_hash[attr.to_s]).present? ? c.type : :string
     end
-    
-    def required_properties
-      properties.values.map{|p| p.required? ? p.name : nil}.compact
-    end
-    
+
     def subtype(attribute)
       column = columns_hash[attribute.to_s]
       column.type if column && column.array?
