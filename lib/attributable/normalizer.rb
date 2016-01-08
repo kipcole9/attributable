@@ -1,3 +1,5 @@
+require "attribute_normalizer"
+
 Dir["#{File.dirname(__FILE__)}/normalizers/*.rb"].each {|f| require f}
 
 AttributeNormalizer.configure do |config|

@@ -3,7 +3,6 @@ require "attributable/railtie"
 require "postgresql/schema"
 require "attributable/active_record"
 require "attributable/property"
-require "attribute_normalizer"
 require "attributable/normalizer"
 Dir["#{File.dirname(__FILE__)}/attributable/validators/*.rb"].each {|f| require f}
 require "attributable/json_schema"
