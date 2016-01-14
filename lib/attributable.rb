@@ -32,13 +32,13 @@ module Attributable
         :json_schema_type => :string
       },
       :name => {
-        :normalizers => [ :strip, :blank, :squish ],
+        :normalizers => [ :strip, :blank, :squish, :name ],
         :validators => {:name => true},
         :json_schema_type => :string,
         :json_schema_pattern => ActiveModel::Validations::NameValidator.format
       },
       :slug => {
-        :normalizers => [ :strip, :blank, :squish ],
+        :normalizers => [ :strip, :blank, :squish, :slug ],
         :validators => {:slug => true},
         :json_schema_type => :string,
         :json_schema_pattern => ActiveModel::Validations::SlugValidator.format
