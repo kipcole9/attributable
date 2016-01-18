@@ -94,7 +94,7 @@ module Attributable
         :json_schema_format => 'date-time'
       },
       :printable => {
-        :normalizers => [ :strip, :blank ],
+        :normalizers => [ :strip, :blank, :remove_nonprintable ],
         :validators => {:printable => true},
         :json_schema_type => :string,
         :json_schema_pattern => ActiveModel::Validations::PrintableValidator.format
